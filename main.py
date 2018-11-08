@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # filename: main.py
 import web
-from handle import Handle
+from src.handle import Handle
 
 urls = (
-    '/wx', 'Handle',
+    '/', 'Handle',
 )
 
 if __name__ == '__main__':
