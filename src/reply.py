@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # filename: reply.py
 import time
-from messageHandler import userList
+from messageHandler import UserInfo
+from messageHandler import MSG
 #import csv
 class Msg(object):
     def __init__(self):
@@ -10,15 +11,14 @@ class Msg(object):
         return "success"
 
 class TextMsg(Msg):    
-    def __init__(self, toUserName, fromUserName, content):
+    def __init__(self, toUserName, fromUserName, content, userInfo, msgInfo):
         self.__dict = dict()
         self.__dict['ToUserName'] = toUserName
         self.__dict['FromUserName'] = fromUserName
         self.__dict['CreateTime'] = int(time.time())
         self.__dict['Content'] = content
-        for ul in userList:
-            if ul.userid == toUserName and ul.ulevel == 1:
-            	self.__dict['Content'] = "老大好"
+        self.userInfo = userInfo
+        self.msgInfo = msgInfo
     
     def send(self):
         XmlForm = """
@@ -30,12 +30,16 @@ class TextMsg(Msg):
         <Content><![CDATA[{Content}]]></Content>
         </xml>
         """
-        #level = getLevel(self.__dict['ToUserName'])
-        #self.__dict['Content'] += 'test'
-        #if level == '0':
-        #	self.__dict['Content'] = '老大好'
-        #else:
-        #self.__dict['Content'] =  level
+        myContent = self.__dict['Content']
+        myMsgDict = self.msgInfo.msgDict
+        myUserDict = self.userInfo.userDict
+        if(myContent in myMsgDict):
+            ll = 0
+            toUser = self.__dict['ToUserName']
+            if(toUser in myUserDict):
+                ll = myUserDict[toUser].level
+                print ll
+            self.__dict['Content'] = myMsgDict[myContent].reply + myMsgDict[myContent].price[ll]
         return XmlForm.format(**self.__dict)
 
 class ImageMsg(Msg):

@@ -5,8 +5,15 @@ import hashlib
 import web
 import reply
 import receive
+import messageHandler
 
 class Handle(object):
+    def __init__(self):
+        self.userInfo = messageHandler.UserInfo()
+        self.msgInfo = messageHandler.MsgInfo()
+        self.userInfo.loadInfo()
+        self.msgInfo.loadMsg()
+        
     def GET(self):
         try:
             data = web.input()
@@ -31,19 +38,19 @@ class Handle(object):
         except Exception, Argument:
             return Argument
     def POST(self):
-		try:
-			webData = web.data()
-			print "Handle Post webdata is ", webData
-			recMsg = receive.parse_xml(webData)
-			if isinstance(recMsg, receive.Msg) and recMsg.MsgType == 'text':
-				toUser = recMsg.FromUserName
-				fromUser = recMsg.ToUserName
-				content = recMsg.Content
-				replyMsg = reply.TextMsg(toUser, fromUser, content)
-				return replyMsg.send()
-			else:
-				print "暂且不处理"
-				return "success"
-		except Exception, Argment:
-			return Argment
+        try:
+            webData = web.data()
+            print "Handle Post webdata is ", webData
+	    recMsg = receive.parse_xml(webData)
+	    if isinstance(recMsg, receive.Msg) and recMsg.MsgType == 'text':
+                toUser = recMsg.FromUserName
+		fromUser = recMsg.ToUserName
+		content = recMsg.Content
+		replyMsg = reply.TextMsg(toUser, fromUser, content, self.userInfo, self.msgInfo)
+		return replyMsg.send()
+	    else:
+                print u"暂且不处理"
+		return "success"
+	except Exception, Argment:
+	    return Argment
         
