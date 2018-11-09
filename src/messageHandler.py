@@ -17,12 +17,11 @@ class UserInfo(object):
 
     def loadInfo(self):
         try:
-            userFile = csv.reader(open('user.csv','r'))
-            print userFile
+            userFile = csv.reader(open('data/user.csv','r'))
             next(userFile)
             for line in userFile:
-                self.userDict[line[1].decode('gb2312')] = User(line[0].decode('gb2312'),line[2].decode('gb2312'))
-            return 1
+                self.userDict[line[1]] = User(line[0],line[2])
+            return 'success'
         except Exception, Argument:
             return Argument
 
@@ -40,15 +39,14 @@ class MsgInfo(object):
 
     def loadMsg(self):
         try:
-            msgFile = csv.reader(open('msg1.csv','r'))
-            print msgFile
+            msgFile = csv.reader(open('data/msg.csv','r'))
             next(msgFile)
             for line in msgFile:
                 levelList = []
                 for l in line[2:12]:
                     levelList.append(int(l))
-                self.msgDict[line[0].decode('gb2312')] = MSG(line[1].decode('gb2312'),levelList)
-            return 1    
+                self.msgDict[line[0]] = MSG(line[1],levelList)
+            return 'success'
         except Exception, Argument:
             return Argument
 

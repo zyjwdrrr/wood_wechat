@@ -11,8 +11,8 @@ class Handle(object):
     def __init__(self):
         self.userInfo = messageHandler.UserInfo()
         self.msgInfo = messageHandler.MsgInfo()
-        self.userInfo.loadInfo()
-        self.msgInfo.loadMsg()
+        print self.userInfo.loadInfo()
+        print self.msgInfo.loadMsg()
         
     def GET(self):
         try:
