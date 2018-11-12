@@ -18,9 +18,7 @@ class TextMsg(Msg):
         self.__dict['Content'] = self.getContent(toUserName,content)
 
     def getContent(self,userName,myContent):
-        print time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-        level = mh.getLevel(userName)
-        msgInfo = mh.loadMsg(myContent,level)
+        msgInfo = mh.loadMsg(userName,myContent)
         print msgInfo
         return msgInfo
         

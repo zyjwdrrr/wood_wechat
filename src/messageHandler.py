@@ -3,6 +3,7 @@
 
 import csv
 import time
+import token as tk
 
 user =dict()
 msg = dict()
@@ -21,18 +22,19 @@ class MSG(object):
 def STR(str):
     return str.decode('gbk').encode('utf-8')
 
-def getLevel(name):
+def getLevel(open_id):
     try:
-        lv = user[name].level
-        print "  User ID = " + name + "尝试咨询问题  等级: " + str(lv)
-        return lv
+        lv = user[open_id].level
+        name = user[open_id].name
+        print "  User ID = " + open_id + " " + name + " 尝试咨询问题  等级: " + str(lv)
+        return name,lv
     except Exception, Argument:
-        print "  User ID = " + name + "尝试咨询问题  未查询到等级"
-        return 0
+        print "  User ID = " + open_id + "尝试咨询问题  未查询到等级"
+        return '未知用户',0
 
 def refreshUser():
     try:
-        userFile = csv.reader(open('data/user.csv','r'))
+        userFile = csv.reader(open('/home/smbuser/data/user.csv','r'))
         next(userFile)
         user.clear()
         for line in userFile:
@@ -52,7 +54,8 @@ def getCommand(content):
     if '查询用户':
         return getAllUser()
 
-def loadMsg(content,level):
+def loadMsg(open_id,content):
+    name,level = getLevel(open_id)
     if 'cmd' in content and level == 9:
         cmdMsg = getCommand(content)
         print "管理员命令:" + content
@@ -68,12 +71,14 @@ def loadMsg(content,level):
     except Exception, Argument:
         print "未知问题"
         answer = "我没有理解你的问题，现在正将这条信息转发给客服"
+        msg = name + "问您:\n" + content
+        tk.sender(msg,None)
     return answer
 
 
 def refreshMsg():
     try:
-        msgFile = csv.reader(open('data/msg.csv','r'))
+        msgFile = csv.reader(open('/home/smbuser/data/msg.csv','r'))
         next(msgFile)
         msg.clear()
         for line in msgFile:
