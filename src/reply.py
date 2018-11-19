@@ -2,7 +2,6 @@
 # filename: reply.py
 import time
 import messageHandler as mh
-#import csv
 class Msg(object):
     def __init__(self):
         pass
