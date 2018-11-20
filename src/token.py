@@ -32,7 +32,8 @@ def json_post_data_generator(content='我也不知道为啥我要发这个，可
     return json.dumps(post_data,False,False)
 
 def appInfos():
-    
+    APPID = "wxba82ef4565733356"
+    APPSECRET = "83a7ad72ef125f72a8d0fb31183eca8d"
     return (APPID,APPSECRET)
 
 def get_token_info():
@@ -57,6 +58,7 @@ def post_url():
     timer = threading.Timer((expires_in-200),post_url)
     timer.start()
     get_url_token[0] = "%s"%access_token
+    print access_token
     post_url_freshing[0] = 'https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=%s' %access_token
 
 def get_userInfo(open_id):
@@ -79,4 +81,19 @@ def sender(text_str,user_lis = None):
         print "Sent successfully"
     else:
         print result["errmsg"]
-        
+ 
+def send_media(media_id,toUser):
+    posturl = post_url_freshing[0]
+    m_id = {}
+    m_id['media_id'] = content
+    post_data = {}
+    post_data['mpnews'] = m_id
+    post_data['touser'] = "%s" % toUser
+    post_data['msgtype'] = 'mpnews'
+    post_data = json.dumps(data,False,False)
+    r = requests.post(posturl,data=post_data)
+    result = r.json()
+    if result["errcode"] == 0:
+        print "Sent successfully"
+    else:
+        print result["errmsg"]       

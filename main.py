@@ -7,11 +7,9 @@ import src.token as tk
 import src.db as dataBase
 from src.handle import Handle
 from web import form
-from src.index import Index
 
 urls = (
-    '/wechat', 'Handle',
-    '/','Index',
+    '/', 'Handle',
 )
 
 class BASE_DEF(object):

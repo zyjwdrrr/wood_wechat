@@ -4,6 +4,7 @@
 import csv
 import time
 import token as tk
+import image
 import db
 import re
 
@@ -26,8 +27,10 @@ def cmd_update_msgInfo(content):
 def cmd_refresh(content):
     mDB = db.DB()
     mDB.refresh()
+    img_list = image.uploadAllImages(current_user.open_id)
     mDB.close()
-    return "已刷新列表，建议获取用户列表来查看是否成功"
+    lens = len(img_list)
+    return "已刷新列表，建议获取用户列表来查看是否成功\n刷新到%d个新的图片文件夹，稍后进行上传" % lens
 
 def cmd_getUser(content):
     cont = re.split(r'[+|,|，|.|。| |*]+',content)
