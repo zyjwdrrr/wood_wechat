@@ -7,6 +7,8 @@ import poster.encode
 from PIL import Image
 from poster.streaminghttp import register_openers
 
+import chardet
+
 def getFileSize(file_path):
     fsize = os.path.getsize(file_path)
     fsize = fsize/float(1024*1024)
@@ -16,7 +18,14 @@ def resizeImage(file_path):
     img = Image.open(file_path)
     w,h = img.size
     img.resize((w/2,h/2)).save(file_path,"JPEG")
-    
+
+def rename(file_path,file_name):
+    img = Image.open(file_path)
+    img.save(file_name,"JPEG")
+
+def toStr(content):
+    return content.encode('utf-8') 
+
 class Material(object):
     def __init__(self):
         register_openers()
@@ -25,8 +34,10 @@ class Material(object):
     def uplaod(self, accessToken, filePath, mediaType,file_name):
         while getFileSize(filePath) > 2:
             resizeImage(filePath)
-        openFile = open(filePath, "rb")
+        rename(filePath,file_name)
+        openFile = open(file_name, "rb")
         fileName = file_name
+        print fileName
         param = {'media': openFile, 'filename': fileName}
         #param = {'media': openFile}
         postData, postHeaders = poster.encode.multipart_encode(param)
@@ -35,12 +46,13 @@ class Material(object):
         urlResp = urllib2.urlopen(request)
         response = urlResp.read()
         res = json.loads(response)
-        if 'errcode' not in res:
-            print res
-            return res["media_id"],res["url"]
+        openFile.close()
+        if 'errcode' not in res:   
+            os.remove(file_name)      
+            return toStr(res["media_id"]),toStr(res["url"])
         else:
             print res
-            return False,res['errmsg']    
+            return False,toStr(res['errmsg'])    
 
     def add_news(self, accessToken, title, detail, thumb, pic_list):
         postUrl = "https://api.weixin.qq.com/cgi-bin/material/add_news?access_token=%s" % accessToken
@@ -53,8 +65,8 @@ class Material(object):
                 "thumb_media_id":"",
                 "author":"robot",
                 "digest":"",
-                "show_cover_pic":1,
-                "content":"",
+                "show_cover_pic":0,
+                "content":"<p>",
                 "content_source_url":"",
                 }
             ]
@@ -65,13 +77,14 @@ class Material(object):
         for pic_url in pic_list:
             content += "<p><img src=\"%s\" alt=\"\" data-width=\"null\" data-ratio=\"NaN\"><br  />"%pic_url
         news['articles'][0]['content'] = content
-        urlResp = urllib2.urlopen(postUrl, news)
+        urlResp = urllib2.urlopen(postUrl, json.dumps(news,ensure_ascii=False))
         response = urlResp.read()
         res = json.loads(response)
         if 'errcode' not in res:
-            return True,res["media_id"]
+            return True,toStr(res["media_id"])
         else:
-            return False,res['errmsg']
+            print res
+            return False,toStr(res['errmsg'])
         
     #download image
     def get(self, accessToken, mediaId,file_path):
@@ -94,7 +107,7 @@ class Material(object):
         urlResp = urllib2.urlopen(postUrl, postData)
         response = urlResp.read()
         res = json.loads(response)
-        return res["errcode"]
+        return toStr(res["errcode"])
 
     #get meterial list
     def batch_get(self, accessToken, mediaType, offset=0, count=20):

@@ -20,21 +20,55 @@ user = dict()
 msg = dict()
 title = []
 manager = dict()
+default_list = ['key','answer','syntax','author','图片']
 
 class USER:
-    def __init__(self,uid,name,open_id,level):
+    def __init__(self,uid,name,open_id,level,edit,address):
         self.uid = uid
         self.name = name
         self.open_id = open_id
         self.level = level
+        self.can_edit = edit
+        self.edit_address = address
+    def copy_from(self,user):
+        self.uid = user.uid
+        self.name = user.name
+        self.open_id = user.open_id
+        self.level = user.level
+        self.can_edit = user.can_edit
+        self.edit_address = user.edit_address
+    def toString(self):
+        return self.name + "\n用户ID:" + self.uid + "\n等级:" + str(self.level) + "\n" + self.open_id
 
 class MSG:
     def __init__(self,key,answer,price):
         self.key = key
         self.answer = answer
         self.price = price
-
-
+        self.checkAnswer()
+        
+    def price_str(self):
+        rmsg = ""
+        for p in self.price:
+            rmsg+= p + ","
+        return rmsg
+    def price_sql(self):
+        rmsg = ""
+        for p in self.price:
+            rmsg+="\'"+p+"\',"
+        return rmsg
+        
+    def checkAnswer(self):
+        for t in title:
+            if False == self.answer.has_key(t):
+                self.answer[t] = ''
+        for d in default_list:
+            if False == self.answer.has_key(d):
+                self.answer[d] = ''
+    def copyFrom(self,omsg):
+        self.key = omsg.key
+        self.answer = omsg.answer
+        self.price = omsg.price
 #=========================================
 #=============REFERENCE FUNC==============
 #=========================================
@@ -45,7 +79,7 @@ def get_user(open_id):
             return user.get(open_id)
         nick_name = tk.get_userInfo(open_id)
         mDB = DB()
-        new_user = USER(9999,nick_name,open_id,0)
+        new_user = USER(9999,nick_name,open_id,0,0,0)
         if mDB.update_one_user(new_user):
             new_user = mDB.getTargetUser(open_id)
             user[open_id] = new_user
@@ -57,7 +91,7 @@ def get_user(open_id):
     except Exception as e:
         print e
         mDB.close()
-        return USER(9999,"unknown user",open_id,0)
+        return USER(9999,"unknown user",open_id,0,0,0)
 
 def get_msg(content):
     res = content.split('+')[0]
@@ -108,33 +142,33 @@ class DB(object):
         return msglist
         
     def getUser(self): 
-        self.cs.execute("SELECT id,name,open_id,level from user")
+        self.cs.execute("SELECT id,name,open_id,level,edit,address from user")
         userlist = []
         for row in self.cs:
-            userlist.append(USER(row[0],toStr(row[1]),toStr(row[2]),row[3]))
+            userlist.append(USER(row[0],toStr(row[1]),toStr(row[2]),row[3],row[4],row[5]))
         return userlist
         
     def getTargetUser(self,open_id):
         try:
-            sql = "SELECT id,name,level from user WHERE open_id = \'" + open_id + '\''
+            sql = "SELECT id,name,level,edit,address from user WHERE open_id = \'" + open_id + '\''
             self.cs.execute(sql)
             res = self.cs.fetchone()
-            return USER(res[0],toStr(res[1]),toStr(open_id),res[2])
+            return USER(res[0],toStr(res[1]),toStr(open_id),res[2],res[3],res[4])
         except Exception as res:
             print res
-            return USER(9999,'未知用户',open_id,0)
+            return USER(9999,'未知用户',open_id,0,0,0)
 
     def update_one_user(self,user_info):
         try:
-            sql = "replace into user(name,open_id,level) values(\'" + user_info.name +"\',\'" +\
-                  user_info.open_id + "\'," + str(user_info.level) + ")"
+            sql = "replace into user(name,open_id,level,edit,address) values(\'" + user_info.name +"\',\'" +\
+                  user_info.open_id + "\'," + str(user_info.level) + "\," + str(user_info.can_edit) + "\," + str(user_info.edit_address) + ")"
             self.cs.execute(sql)
             self.conn.commit()
             return True
         except Exception as res:
             print res
             return False
-    
+        
     def getTableName(self):
         try:
             sql = "pragma table_info (\'msg\')"
@@ -144,7 +178,7 @@ class DB(object):
                 del title[0]
             for rt in res:
                 r = toStr(rt[1])
-                if 'l' in r or 'key' == r or 'answer' == r or '预留' in r:
+                if 'l' in r or r in default_list or '预留' in r:
                     continue
                 else:
                     title.append(r)
@@ -180,13 +214,50 @@ class DB(object):
         except Exception as res:
             print res
             return res
-    
+    def updateImageInMsg(self,key,news_id):
+        try:
+            sql = "update msg set 图片 = ? where key = ?"
+            self.cs.execute(sql,(news_id,key))
+            self.conn.commit()
+        except Exception as res:
+            print "updateImageInMsg ERR!!"
+            print res
+
+    def updateImage(self,key,news,images):
+        try:
+            new_key = toUni(key)
+            sql = "replace into IMG(key,img_id,img_url) values(?,?,?)"
+            img_id = ""
+            img_url = ""
+            for img in images:
+                img_id+= img.media_id + ","
+                img_url+=img.url + ","
+            self.cs.execute(sql,(new_key,img_id,img_url))
+            self.updateImageInMsg(new_key,news)
+        except Exception as res:
+            print "updateImage ERR!!"
+            print res
+
+    def updateMsg(self,m_msg):
+        try:
+            key = m_msg.key
+            sql = "replace into msg(key,answer,详情,l0,l1,l2,l3,l4,l5,l6,l7,l8,l9,syntax,author) values(\'"+key+"\',\'"+m_msg.answer['answer']+"\',\'"+m_msg.answer['详情']+"\',"+m_msg.price_sql()+"\'"+m_msg.answer['syntax']+"\',\'"+m_msg.answer['author']+"\')"
+            #print sql
+            self.cs.execute(sql)
+            self.conn.commit()
+            print 'success'
+            msg.update({key:m_msg})
+            return True
+        except Exception as res:
+            print "updateMsg Error!!"
+            return res
+            
     def close(self):
         self.conn.close()
     
     def connect(self):
         try:
-            self.conn = sqlite3.connect('/home/ftp/data/wood.db')
+            self.conn = sqlite3.connect('/home/smbuser/data/wood.db')
             self.cs = self.conn.cursor()
         except Exception as res:
             print res
