@@ -67,6 +67,7 @@ def get_userInfo(open_id):
     else:
         print "Can not get user information"
         print js
+        print "use token: " + get_url_token[0]
         return "未知用户"
     
 def sender(text_str,user_lis = None):
@@ -78,6 +79,7 @@ def sender(text_str,user_lis = None):
         print "Sent successfully"
     else:
         print result["errmsg"]
+        
 def send_to_manager(text_str):
     
     sender(text_str,[manager])

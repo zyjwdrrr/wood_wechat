@@ -1,20 +1,60 @@
-$def with (name)
+$def with (auth,open_id,name)
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
     <title>EXPRESS</title>
-    <link rel="stylesheet" href="weui.css">
-    <link rel="stylesheet" href="example.css">
+    <link rel="stylesheet" href="/static/weui.min.css">
+	<link href="/static/style.css" rel='stylesheet' type='text/css' />
+	<!--<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>-->
 </head>
 <body>
-<div id="loading">
-<p>TEST1111$name</p>
-</div>
+$if auth:
+	<div class="w3ls-contact">
 
-<div id="express">
-<p>TEST2222</p>
-</div>
+    <!-- form starts here -->
+    <form action="#" method="post">
+      <div class="agile-field-txt">
+        <label>
+          Name :</label>
+        <div class="mr_agilemain">
+          <div class="left-wthree">
+            <input type="text" name="name" placeholder=" " required="">
+            <label class="bot_w3">
+              First Name</label>
+          </div>
+          <div class="left-wthree">
+            <input type="text" name="name" placeholder=" " required="">
+            <label class="bot_w3">
+              Last Name</label>
+          </div>
+        </div>
+      </div>
+      <div class="agile-field-txt">
+        <label>
+          Mobile No:</label>
+        <input type="text" name="name" placeholder=" " required="" />
+      </div>
+      <div class="agile-field-txt">
+        <label>
+         Moving from</label>
+		 <textarea name="Comments" placeholder="Street Address or ZIP code" required=""></textarea>
+      </div>
+      <div class="agile-field-txt">
+        <label>
+          Moving to</label>
+         <textarea name="Comments" placeholder="Street Address or ZIP code" required=""></textarea>
+      </div>
+      <div class="w3ls-contact  w3l-sub">
+        <input type="submit" value="Get a Quote">
+      </div>
+
+    </form>
+	</div>
+$else:
+	<div id="express">
+	<h2>啊哦，连接好像失效了</h2>
+	</div>
 
 </body>
 </html>

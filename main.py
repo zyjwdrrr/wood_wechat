@@ -2,6 +2,7 @@
 # filename: main.py
 import web
 import os
+import sys
 #import model.py
 import src.messageHandler as mh
 import src.token as tk
@@ -13,7 +14,7 @@ from src.express import Express
 
 urls = (
     '/wechat', 'Handle',
-    '/express','Express'
+    '/e(.*)','Express'
 )
 class BASE_DEF(object):
     def POST(self):
@@ -56,10 +57,13 @@ class Watcher:
            pass
            
 def init_param():
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     Watcher()
     cfg.loadCfg()
     tk.post_url()
     mDB = dataBase.DB()
+    mDB.doNothing()
     mDB.refresh()
     mDB.close()
     

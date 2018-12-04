@@ -7,6 +7,8 @@ import token as tk
 #=============GLOBAL DEFINE===============
 #=========================================
 def toStr(content):
+    if content == None:
+        return ""
     return content.encode('utf-8')
 def Xstr(content):
     res = []
@@ -77,12 +79,17 @@ def get_user(open_id):
     try:
         if user.has_key(open_id):
             return user.get(open_id)
-        nick_name = tk.get_userInfo(open_id)
         mDB = DB()
+        new_user = mDB.getTargetUser(open_id)   
+        if new_user.name != '未知用户':
+            user.update({open_id:new_user})
+            return user.get(open_id)
+        nick_name = tk.get_userInfo(open_id)
+        
         new_user = USER(9999,nick_name,open_id,0,0,0)
         if mDB.update_one_user(new_user):
             new_user = mDB.getTargetUser(open_id)
-            user[open_id] = new_user
+            user.update({open_id:new_user})
             mDB.close()
             return new_user
         else:
@@ -111,6 +118,8 @@ class DB(object):
     def __init__(self):
         self.connect()
         
+    def doNothing(self):
+        return False
     def refresh(self):
         ul = self.getUser()
         user.clear()
@@ -126,18 +135,22 @@ class DB(object):
             msg[m.key] = m
         
     def getMsg(self):
-        sql = "SELECT key,answer"
+        sql = "SELECT "#key,answer"
+        for d in default_list:
+            sql += d+","
         for t in title:
-            sql += ","+t
-        sql +=",l0,l1,l2,l3,l4,l5,l6,l7,l8,l9 from msg"
+            sql += t+","
+        sql +="l0,l1,l2,l3,l4,l5,l6,l7,l8,l9 from msg"
         self.cs.execute(sql)
         msglist = []
         for row in self.cs:
             key = toStr(row[0])
-            answer_dict = {'answer':toStr(row[1])}
+            answer_dict = dict()
             price = Xstr(row[-10:])
+            for a in range(1,len(default_list)):
+                answer_dict[default_list[a]] = toStr(row[a])
             for i in range(len(title)):
-                answer_dict[title[i]] = toStr(row[i+2])
+                answer_dict[title[i]] = toStr(row[i+len(default_list)])
             msglist.append(MSG(key,answer_dict,price))
         return msglist
         
@@ -160,8 +173,7 @@ class DB(object):
 
     def update_one_user(self,user_info):
         try:
-            sql = "replace into user(name,open_id,level,edit,address) values(\'" + user_info.name +"\',\'" +\
-                  user_info.open_id + "\'," + str(user_info.level) + "\," + str(user_info.can_edit) + "\," + str(user_info.edit_address) + ")"
+            sql = "replace into user(name,open_id,level,edit,address) values(\'" + user_info.name +"\',\'" + user_info.open_id + "\'," + str(user_info.level) + "," + str(user_info.can_edit) + "," + str(user_info.edit_address) + ")"
             self.cs.execute(sql)
             self.conn.commit()
             return True
@@ -203,9 +215,11 @@ class DB(object):
             print res
             return res
 
-    def updateMsg(self,content):
+    def updateAnswer(self,content):
         try :
             key = content.split('号')[0] + '号'
+            if not msg.has_key(key):
+                return 'nomember'
             sql = "update msg set answer = \'" + content + "\' where key = \'" + key + "\'"    
             self.cs.execute(sql)
             self.conn.commit()
@@ -216,8 +230,8 @@ class DB(object):
             return res
     def updateImageInMsg(self,key,news_id):
         try:
-            sql = "update msg set 图片 = ? where key = ?"
-            self.cs.execute(sql,(news_id,key))
+            sql = "update msg set \'图片\' = \'"+news_id+"\' where key = \'" + key + "\'"
+            self.cs.execute(sql)
             self.conn.commit()
         except Exception as res:
             print "updateImageInMsg ERR!!"
@@ -225,14 +239,13 @@ class DB(object):
 
     def updateImage(self,key,news,images):
         try:
-            new_key = toUni(key)
-            sql = "replace into IMG(key,img_id,img_url) values(?,?,?)"
             img_id = ""
             img_url = ""
             for img in images:
                 img_id+= img.media_id + ","
                 img_url+=img.url + ","
-            self.cs.execute(sql,(new_key,img_id,img_url))
+            sql = "replace into IMG(key,img_id,img_url) values(\'"+key+"\',\'"+img_id+"\',\'"+umg_url+"\')"
+            self.cs.execute(sql)
             self.updateImageInMsg(new_key,news)
         except Exception as res:
             print "updateImage ERR!!"

@@ -47,8 +47,8 @@ class Material(object):
         response = urlResp.read()
         res = json.loads(response)
         openFile.close()
-        if 'errcode' not in res:   
-            os.remove(file_name)      
+        os.remove(file_name)
+        if 'errcode' not in res:           
             return toStr(res["media_id"]),toStr(res["url"])
         else:
             print res

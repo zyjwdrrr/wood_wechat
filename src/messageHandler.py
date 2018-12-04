@@ -8,34 +8,88 @@ import token as tk
 import image
 import db
 import re
+import express as ep
 
 
 #==================================================
 #============USER DEFINATIONS AREA=================
 #==================================================
 
+#=========L1,L6,L7,L8 ==========<100,<200,<311,<401,<501
+#============================L1  <100,<200,<300,<500,<800
+stage = [[0,30,30,25],
+         [-10,50,40,30],
+         [-20,80,60,40],
+         [-30,110,80,60],
+         [-50,150,100,80]]
+def calPriceIndex(price):
+    if price < 100:
+        return 0
+    elif price < 200:
+        return 1
+    elif price < 300:
+        return 2
+    elif price < 500:
+        return 3
+    elif price < 800:
+        return 4
+    else:
+        return 5
+def calPrimeIndex(prime):
+    if prime < 100:
+        return 0
+    elif prime < 200:
+        return 1
+    elif prime < 311:
+        return 2
+    elif prime < 401:
+        return 3
+    elif prime < 501:
+        return 4
+    elif prime < 1000:
+        return 5
+    else:
+        return 6
 def calcPrice(price,prime):
     rp = list()
-    rp.append(str(price))  #l0
-    lens = max(len(str(price))-2,0)
-    div = 1
-    while lens:
-        div*=10
-        lens-=1
-    diff = (int(((prime - price)/3)/div))*div
-    price1 = str(price + diff)
-    rp.append(price1)  #l1
-    rp.append(price1)  #l2
-    rp.append(price1)  #l3
-    price4 = str(prime - diff)
-    rp.append(price4)  #l4
-    rp.append(price4)  #l5
-    rp.append(price4)  #l6
-    rp.append(str(prime))  #l7
-    rp.append(str(prime))  #l8
-    rp.append(str(prime))  #l9
+    price_index = calPriceIndex(price)
+    prime_index = calPrimeIndex(prime)
+    if price == 0:
+        for i in range(6):
+            rp.appen('0')
+    else:
+        rp.append(str(price)) #L0
+        if price_index == 5:
+            price1 = int(price * 0.95)
+            rp.append(str(price1))#1
+        else:
+            price1 = int(price + stage[price_index][0])
+            rp.append(str(price)) #L1
+        price2 = int(price1 * 0.99)
+        price3 = int(price2 * 0.99)
+        price4 = int(price3 * 0.98)
+        price5 = int(price4 * 0.97)
+        rp.append(str(price2))
+        rp.append(str(price3))
+        rp.append(str(price4))
+        rp.append(str(price5))
+    if prime_index < 5:
+        prime6 = int(prime + stage[prime_index][1])
+        prime7 = int(prime + stage[prime_index][2])
+        prime8 = int(prime + stage[prime_index][3])
+    elif prime_index ==5:
+        prime6 = int(prime*1.15 + 80)
+        prime7 = int(prime*1.15 + 50)
+        prime8 = int(prime*1.15 + 30)
+    else:
+        prime6 = int(prime*1.1 + 150)
+        prime7 = int(prime*1.1 + 120)
+        prime8 = int(prime*1.08 + 100)
+    rp.append(str(prime6))
+    rp.append(str(prime7))
+    rp.append(str(prime8))
+    rp.append(str(prime)) #L9
     return rp
-
 #==================================================
 #============MANAGER COMMAND AREA==================
 #==================================================
@@ -49,8 +103,26 @@ class CMD(object):
 
 def cmd_update_msgInfo(content,user):
     mdb = db.DB()
-    res = mdb.updateMsg(content)
+    cont = re.split(r'[+|,|，|.|。| |*]+',content)
+    errlist = ""
+    success_cnt = 0
+    not_in_list = ""
+    not_in_list_cnt = 0
+    for c in cont:
+        ret = mdb.updateAnswer(c)
+        if ret == 'success':
+            success_cnt += 1
+        elif ret == 'nomember':
+            not_in_list += c
+            not_in_list_cnt += 1
+        else:
+            errlist+= c + ": " + ret
     mdb.close()
+    res = '成功更新'+str(success_cnt)+'个已出商品\n'
+    if not_in_list_cnt != 0:
+        res += "数据库中未查询到的商品有"+str(not_in_list_cnt)+"个:\n" + not_in_list
+    if errlist != '':
+        res += "更新失败:\n" + errlist
     return res
 
 def cmd_refresh(content,user):
@@ -108,14 +180,14 @@ def cmd_add_new(content,user):
         key = key[1:]
     else:
         return "你自己看我解析出了个啥。。" + key
-    info = content.split('%')[0]
-    title = key + '新上'
+    info = content.split('%')[0].split('#')[0]
+    title = key + '待售'
     if '【0号' in content:
         info = info.strip('0号')
         title = '重磅大货！！'
         
     try:
-        answer['详情'] = info.split('#')[0]
+        answer['详情'] = info
         answer['answer'] = title
         answer['syntax'] = group
         answer['author'] = author
@@ -143,7 +215,8 @@ def cmd_add_new(content,user):
 
 def cmd_edit_goods(content,user):
     return "已经修改"
-
+def cmd_edit_express(content,user):
+    return ep.gen_random_access(user)
 def get_perm(content):
     if 'level' in content:
         minLev = int(content.split('level')[1])
@@ -160,16 +233,17 @@ command = [CMD('用户','用户：查询所有管理员用户\n用户，VH小叶
            CMD('设置客服',"可以将未知信息转发给客服\n格式： 设置客服open_id\nopen_id通过<用户>命令获得",cmd_setAdmin,get_perm('level9')),
            CMD('修改等级','修改等级，VH小叶紫檀，9：\n设置该用户等级为9，仅数据库使用',cmd_setLevel,get_perm('level9')),
            CMD('【','新增数据，格式为【key】info...[金袋]售价%成本',cmd_add_new,get_perm('edit')),
-           CMD('修改','修改数据，格式为 修改XXX号还在',cmd_edit_goods,get_perm('edit'))]
+           CMD('修改','修改数据，格式为 修改XXX号还在',cmd_edit_goods,get_perm('edit')),
+           CMD('快递','新增快递单',cmd_edit_express,get_perm('level7'))]
 #==================================================
 #============COMMON CALL FUNCTION==================
 #==================================================
 
 def loadMsg(open_id,content):
+    user = db.get_user(open_id)
     if content == '自己id':
         return open_id
-    user = db.get_user(open_id)
-    if user.level >= 7:
+    if user.level >= 1:
         try:
             if content == 'help':
                 answer = "管理员命令:"
@@ -187,22 +261,31 @@ def loadMsg(open_id,content):
                     cmdMsg = cd.func(content,user)
                     return cmdMsg
         except Exception as e:
-            return e
+            return e + "\nload msg error!"
     try :
         detail = re.split(r'[+|,|，|.|。| |*]+',content)#content.split('[+|,|，|.|。| |*]+')[1:]
         key_word = detail[0]
+        if '号' not in key_word:
+            key_word += '号'
         detail = detail[1:]
         print detail
         msg = db.get_msg(key_word)       
         #detail = content.split('[\+|\,|\，|\.|\。| |\*]+')[1:]
-        answer = msg.answer['answer'] + "\n价格是:"
-        if msg.price[user.level] == '0':
+        answer = msg.answer['answer'] + "\n"
+        #if user.level > 0:
+        #    answer += "您是尊贵的L" + str(user.level)+ "用户，"
+        answer += "价格是:"
+        if user.level == 9:
+            for p in msg.price:
+                answer += p + ","
+        elif msg.price[user.level] == '0':
             answer += '未知，请询问客服'
         else:
             answer += msg.price[user.level]
         if len(detail) == 0:
             answer += "\n=====================\n图片:\n"
             if msg.answer['图片'] == '':
+                print msg.answer['图片']
                 answer += '管理员暂时未上传图片，请联系客服获取图片'
             else:
                 answer += '图片将在5s后发送给您'
