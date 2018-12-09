@@ -3,7 +3,6 @@
 import web
 import os
 import sys
-#import model.py
 import src.messageHandler as mh
 import src.token as tk
 import src.db as dataBase
@@ -11,6 +10,7 @@ import src.config as cfg
 from src.handle import Handle
 from web import form
 from src.express import Express
+import src.log as log
 
 urls = (
     '/wechat', 'Handle',
@@ -58,7 +58,10 @@ class Watcher:
            
 def init_param():
     reload(sys)
+    os.chdir("/var/project/wood_wechat")
     sys.setdefaultencoding('utf-8')
+    log.init_log()
+    log.log_.info("程序开始运行")
     Watcher()
     cfg.loadCfg()
     tk.post_url()

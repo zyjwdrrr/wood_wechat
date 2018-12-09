@@ -1,58 +1,157 @@
-$def with (auth,open_id,name)
+$def with (auth,open_id,name,agents)
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
     <title>EXPRESS</title>
-    <link rel="stylesheet" href="/static/weui.min.css">
+    <link rel="stylesheet" href="/static/weui.css">
 	<link href="/static/style.css" rel='stylesheet' type='text/css' />
 	<!--<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>-->
+	<script src="/static/jquery.min.js"></script>
+	<script type="text/javascript">
+        function upload() {
+            $$.ajax({
+                type: "POST",
+                dataType: "html",
+                url: "/eexpress" ,
+                data: $$('#express_form').serializeArray(),
+                success: function (result) {			
+                    if (result == '1') {
+                        var $$successToast = $$('#successToast');
+						$$successToast.fadeIn(100);
+						setTimeout(function () {
+							$$successToast.fadeOut(100);
+							$$('#express').css('display', 'none');
+							$$('#express_success').css('display', 'block');
+						}, 2000);
+						if(!$$("#isKeep").is(":checked"))
+						{
+							$$("#reset").trigger("click");
+						};
+                    };
+					if (result == '0') {
+                        alert("快递添加失败!");
+                    };
+                },
+                error : function() {
+                    alert("快递添加失败!");
+                }
+            });
+        }
+    </script>
 </head>
 <body>
 $if auth:
-	<div class="w3ls-contact">
+	<div id="express">
+		<form id="express_form" action="#" method="POST" accept-charset="utf-8" onsubmit="document.charset='utf-8'">
+		<div class="weui-cells__title">快递单填写</div>
+		<div class="weui-cells weui-cells_form">
+			<div class="weui-cell" style="display: none;">
+				<input class="weui-input" type="text" name="author_name" value="$name,$open_id"/>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__hd"><label class="weui-label">发件人：</label></div>
+				<div class="weui-cell__bd">
+					<input class="weui-input" type="text" name="name" placeholder="请输入发件人姓名"/>
+				</div>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__hd"><label for="" class="weui-label">货品详情：</label></div>
+				<div class="weui-cell__bd">
+					<input class="weui-input" type="text" name="context" placeholder="请输入编号"/>
+				</div>
+			</div>
+			<div class="weui-cell weui-cell_select weui-cell_select-before">
+				<div class="weui-cell__hd">
+					<select class="weui-select" name="agent">
+						<option value="0">归属</option>
+			$for a in agents:<option value="$a">$a</option>					
+					</select>
+				</div>
+				<div class="weui-cell__bd"><label class="weui-label">是否顺丰</label></div>
+				<div class="weui-cell__ft">
+					<input class="weui-switch" name="isShunfeng" type="checkbox"/>
+				</div>
+			</div>
+			<div class="weui-cells__title">收件人地址</div>
+			<div class="weui-cells">
+				<div class="weui-cell">
+					<div class="weui-cell__bd">
+						<input class="weui-input" type="text" name="address" placeholder="请输入详细地址"/>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="weui-cells__title">备注</div>
+		<div class="weui-cells weui-cells_form">
+			<div class="weui-cell">
+				<div class="weui-cell__bd">
+					<textarea class="weui-textarea" name="remarks" placeholder="请输入备注" rows="3"></textarea>
+					<div class="weui-textarea-counter"><span>0</span>/200</div>
+				</div>
+			</div>
+		</div>
+		<label class="weui-agree">
+			<input id="isKeep" type="checkbox" class="weui-agree__checkbox"/>
+			<span class="weui-agree__text">
+				提交后保留所有表单项内容（方便继续提交）
+			</span>
+		</label>
+		<div class="weui-btn-area">
+			<input class="weui-btn weui-btn_primary" type="button" onclick="upload()" value="确定"/>
+		</div>
+		<div class="weui-cells__tips">小叶紫檀所属</div>
+		<div id="success_toast" style="display:none;">
+			<div class="weui-mask_transparent"></div>
+			<div class="weui-toast">
+				<i class="weui-icon-success-no-circle weui-icon_toast"></i>
+				<p class="weui-toast__content">success</p>
+			</div>
+		</div>
+		
+		<!--BEGIN toast-->
+		<div id="successToast" style="display: none;">
+			<div class="weui-mask_transparent"></div>
+			<div class="weui-toast">
+				<i class="weui-icon-success-no-circle weui-icon_toast"></i>
+				<p class="weui-toast__content">已完成</p>
+			</div>
+		</div>
+		<!--end toast-->
 
-    <!-- form starts here -->
-    <form action="#" method="post">
-      <div class="agile-field-txt">
-        <label>
-          Name :</label>
-        <div class="mr_agilemain">
-          <div class="left-wthree">
-            <input type="text" name="name" placeholder=" " required="">
-            <label class="bot_w3">
-              First Name</label>
-          </div>
-          <div class="left-wthree">
-            <input type="text" name="name" placeholder=" " required="">
-            <label class="bot_w3">
-              Last Name</label>
-          </div>
-        </div>
-      </div>
-      <div class="agile-field-txt">
-        <label>
-          Mobile No:</label>
-        <input type="text" name="name" placeholder=" " required="" />
-      </div>
-      <div class="agile-field-txt">
-        <label>
-         Moving from</label>
-		 <textarea name="Comments" placeholder="Street Address or ZIP code" required=""></textarea>
-      </div>
-      <div class="agile-field-txt">
-        <label>
-          Moving to</label>
-         <textarea name="Comments" placeholder="Street Address or ZIP code" required=""></textarea>
-      </div>
-      <div class="w3ls-contact  w3l-sub">
-        <input type="submit" value="Get a Quote">
-      </div>
-
-    </form>
+		<!-- loading toast -->
+		<div id="loadingToast" style="display:none;">
+			<div class="weui-mask_transparent"></div>
+			<div class="weui-toast">
+				<i class="weui-loading weui-icon_toast"></i>
+				<p class="weui-toast__content">数据加载中</p>
+			</div>
+		</div>
+		<button id="reset" type="reset" style="display:none;"></button> 
+	</div>
+	<div class="page" id="express_success" style="display: none;">
+		<div class="weui-msg">
+			<div class="weui-msg__icon-area"><i class="weui-icon-success weui-icon_msg"></i></div>
+			<div class="weui-msg__text-area">
+				<h2 class="weui-msg__title">操作成功</h2>
+				<p class="weui-msg__desc">快递信息已经成功录入，如需修改请自行联系管理员操作。</p>
+			</div>
+			<div class="weui-msg__opr-area">
+				<p class="weui-btn-area">
+					<a href="javascript:history.back();" class="weui-btn weui-btn_primary">关闭页面</a>
+				</p>
+			</div>
+			<div class="weui-msg__extra-area">
+				<div class="weui-footer">
+					<p class="weui-footer__links">
+						<a href="javascript:void(0);" class="weui-footer__link">底部链接文本</a>
+					</p>
+					<p class="weui-footer__text">Copyright &copy; 2008-2016 weui.io</p>
+				</div>
+			</div>
+		</div>
 	</div>
 $else:
-	<div id="express">
+	<div id="express_fail">
 	<h2>啊哦，连接好像失效了</h2>
 	</div>
 

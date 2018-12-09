@@ -2,6 +2,8 @@
 # filename: reply.py
 import time
 import messageHandler as mh
+from log import *
+
 class Msg(object):
     def __init__(self):
         pass
