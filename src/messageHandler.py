@@ -16,9 +16,9 @@ from log import *
 #============USER DEFINATIONS AREA=================
 #==================================================
 
-check_list = ['金星','1.8','镇','笔筒','1.5','2.0','把件','时来运转','1.2','1.0','0.8','瘤疤','水波','鱼鳞','龙鳞','火焰','泥料']   #关键词搜索
+check_list = ['金星','瘤疤','水波','鱼鳞','龙鳞','火焰','泥料','2.0','1.8','1.5','1.2','1.0','0.8','把件','时来运转','镇','笔筒']   #关键词搜索
 max_search_items = 1000     #最大搜索范围（从新到旧）
-max_return_item = 8         #返回结果个数
+max_return_item = 5         #返回结果个数
 
 #=========L1,L6,L7,L8 ==========<100,<200,<311,<401,<501
 #============================L1  <100,<200,<300,<500,<800
@@ -293,17 +293,16 @@ def search_for_key(user,content):
         info = db.msg[k].answer['详情']
         answer = db.msg[k].answer['answer']
         if content in info and '已出' not in answer:
-            ret+=k
+            ret += "\n=====================\n"
+            ret+=info
             res_cnt += 1
             if res_cnt >= max_return_item:
-                return "找到了8个匹配项：\n"+ret
-            else:
-                ret+="\n"
+                return "找到了8个匹配项："+ret
     if res_cnt == 0:
         tk.send_to_manager("%s咨询您关键词（%s）未搜索到任何结果，请确认是否搜索范围过窄或是都已出售"%(user.name,content))
         return "没找到匹配项"
     else:
-        return "找到了%d个匹配项：\n%s"%(res_cnt,ret)
+        return "找到了%d个匹配项：%s"%(res_cnt,ret)
     
 def loadMsg(open_id,content):
     user = db.get_user(open_id)
