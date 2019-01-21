@@ -93,7 +93,7 @@ def getAllNews(open_id,cnt):
             "count":"20"
         })
         offset = int(cfg.wechat['last_news_id'])
-        detail['offset'] = offset
+        detail['offset'] = checked
         check_cnt = 20
         if total_remained < 20:
             detail['count'] = total_remained
@@ -112,6 +112,13 @@ def getAllNews(open_id,cnt):
             tk.sender("已经成功更新了%d个素材,更新新素材时失败了\n"%(checked,toStr(res['errmsg'])),[open_id])
             return False
     tk.sender("成功更新了%d个素材"%checked,[open_id])
+    mDB = db.DB()
+    try:
+        mDB.refresh()
+    except Exception as res:
+        print res
+    finally:
+        mDB.close()
  
 
 def removeDir(path):

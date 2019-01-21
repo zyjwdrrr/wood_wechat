@@ -116,8 +116,9 @@ def get_user(open_id):
 
 def get_msg(content):
     res = content.split('+')[0]
-    print res
     if msg.has_key(res):
+        return msg[res]
+    if not content.split('号')[0].isdigit():
         return msg[res]
     try:
         mDB = DB()

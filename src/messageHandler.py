@@ -16,17 +16,28 @@ from log import *
 #============USER DEFINATIONS AREA=================
 #==================================================
 
-check_list = ['金星','瘤疤','水波','鱼鳞','龙鳞','火焰','泥料','2.0','1.8','1.5','1.2','1.0','0.8','把件','时来运转','镇','笔筒']   #关键词搜索
+check_list = ['金星','瘤疤','水波','鱼鳞','龙鳞','火焰','泥料'
+,'手串','2.0','1.8','1.5','1.2','1.0','0.8','0.6'
+,'把件','时来运转','压方','心经','葫芦','算盘','平安扣','牌','梳','签字笔','火机','工艺笔','貔貅'
+,'摆件','毛笔','手镯','香筒','倒流香','观音','弥勒','达摩','c料','琴料'
+,'茶叶罐','风水柱','镇纸','笔筒','镇尺','福禄','条案','印章']   #关键词搜索
 max_search_items = 1000     #最大搜索范围（从新到旧）
-max_return_item = 5         #返回结果个数
+max_return_item = 8         #返回结果个数
+subscribe_answer = '''感谢您关注印度小叶紫檀原料—我们将为您热心解答任何我们所知道的关于小叶紫檀的知识，小叶原料、加工、工艺、鉴别、盘玩、保养。
+我们致力于提供全面的紫檀需求服务，让喜欢紫檀的朋友放心，简单，快捷的买到喜欢的东西，不用担心被药，假，骗。
+我们的价格，公开，透明，产品质量层层把关，不会隐瞒任何一个细节。
+VHXY做放心的紫檀。
+我们承诺关于小叶的问题知无不答。
+直接回复编号，可查询价格，是否还有货，以及获取图片。
+也可以关键词搜索，如金星，瘤疤，摆件。如需帮助，请猛喊客服。'''
 
 #=========L1,L6,L7,L8 ==========<100,<200,<311,<401,<501
 #============================L1  <100,<200,<300,<500,<800
 stage = [[0,30,15,15],
          [-10,50,40,30],
-         [-20,80,60,40],
-         [-30,110,80,60],
-         [-50,150,100,80]]
+         [-20,90,60,40],
+         [-30,150,100,80],
+         [-50,180,120,100]]
 def calPriceIndex(price):
     if price < 100:
         return 0
@@ -178,7 +189,7 @@ def cmd_setAdmin(content,user):
 
 def cmd_setLevel(content,user):
     cont = re.split(r'[+|,|，|.|。| |*]+',content)
-    if user.open_id != 'okPde1eyCobLENIrPIzXMvtA4yxM' :
+    if user.open_id != 'okPde1eyCobLENIrPIzXMvtA4yxM' and user.open_id != 'okPde1ZW2Pm2hXVITZkJoCyH-gEY':
         return "您不是数据库管理员，命令执行失败"
     mDB = db.DB()
     tUser = db.get_user(cont[1])
@@ -344,7 +355,13 @@ def loadMsg(open_id,content):
         answer = msg.answer['answer'] + "\n"
         #if user.level > 0:
         #    answer += "您是尊贵的L" + str(user.level)+ "用户，"
-        answer += "价格是:"
+        retail_price = 0
+        if msg.price[0].isdigit() and msg.price[0] != '0':
+            retail_price = int(msg.price[0])*1.2
+        else:
+            retail_price = int(msg.price[9])*3
+        answer += "建议零售价：%d\n=====================\n" % retail_price 
+        answer += "给您是:"
         if user.level == 9:
             for p in msg.price:
                 answer += p + ","
@@ -379,6 +396,8 @@ def loadMsg(open_id,content):
                 answer += "关键词错误"  
     except Exception as Argument:
         try:
+            if content == "subscribe":
+                return subscribe_answer
             print Argument
             if user.level == 9:
                 answer = "未触发任何指令，您是管理员，是否想执行管理员命令？获取指令信息回复help"

@@ -33,16 +33,17 @@ class Handle(object):
     def POST(self):
         try:
             webData = web.data()
-	    recMsg = receive.parse_xml(webData)
-	    if isinstance(recMsg, receive.Msg) and recMsg.MsgType == 'text':
+            recMsg = receive.parse_xml(webData)
+            isType = recMsg.MsgType == 'text' or (recMsg.MsgType == 'event' and recMsg.Event == "subscribe")
+            if isinstance(recMsg, receive.Msg) and isType:
                 toUser = recMsg.FromUserName
-		fromUser = recMsg.ToUserName
-		content = recMsg.Content
-		replyMsg = reply.TextMsg(toUser, fromUser, content)
-		return replyMsg.send()
-	    else:
+                fromUser = recMsg.ToUserName
+                content = recMsg.Content
+                replyMsg = reply.TextMsg(toUser, fromUser, content)
+                return replyMsg.send()
+            else:
                 print u"暂且不处理"
-		return "success"
-	except Exception, Argment:
-	    return Argment
+            return "success"
+        except Exception, Argment:
+            return Argment
         

@@ -65,6 +65,7 @@ def init_param():
     Watcher()
     cfg.loadCfg()
     tk.post_url()
+    #tk.post_menu()
     mDB = dataBase.DB()
     mDB.doNothing()
     mDB.refresh()

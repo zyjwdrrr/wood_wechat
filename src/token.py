@@ -75,6 +75,19 @@ def get_userInfo(open_id):
         log_.error("获取用户信息失败，%s"%js)
         print "use token: " + get_url_token[0]
         return "未知用户"
+
+def post_menu():
+    with open('menu.txt') as file_obj:
+        menu_info = file_obj.read().decode('utf-8')
+        url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token="+get_url_token[0]
+        r = requests.post(url,data=menu_info)
+        result = r.json()
+        if result["errcode"] == 0:
+            print "Sent mennu successfully"
+        else:
+            print json.loads(menu_info)
+            print "send menu failed!!!"
+            print result["errmsg"]
     
 def sender(text_str,user_lis = None):
     posturl = post_url_freshing[0]
